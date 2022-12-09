@@ -14,6 +14,7 @@ from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
 from datetime import datetime
+from flask_wtf.csrf import CSRFProtect
 
 
 #----------------------------------------------------------------------------#
@@ -21,6 +22,7 @@ from datetime import datetime
 #----------------------------------------------------------------------------#
 
 app = Flask(__name__)
+csrf = CSRFProtect(app)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
@@ -28,9 +30,9 @@ db = SQLAlchemy(app)
 
 from model import *
 
-# TODO - Done: connect to a local postgresql database
 
 #----------------------------------------------------------------------------#
+# TODO - Done: connect to a local postgresql database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://rs@localhost:5432/fyyur'
 migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
@@ -124,28 +126,36 @@ def create_venue_submission():
   error = False
   
   try:
-      
-    name = request.form['name']
-    city = request.form['city']
-    state = request.form['state']
-    address = request.form['address']
-    phone = request.form['phone']
-    genres = request.form.getlist('genres')
-    image_link = request.form['image_link']
-    facebook_link = request.form['facebook_link']
-    website = request.form['website_link']
-    seeking_talent = True if 'seeking_talent' in request.form else False 
-    seeking_description = request.form['seeking_description']
+    form = VenueForm(request.form)
+    #print(form.name)
+    #print(form.address)
+    #v = form.validate()
+    #print(form.errors)
 
-    venue = Venue(name=name, city=city, state=state, address=address, phone=phone, genres=genres, image_link=image_link, 
-    facebook_link=facebook_link, website=website, seeking_talent=seeking_talent, seeking_description=seeking_description)
+    if form.validate():
+      name = request.form['name']
+      city = request.form['city']
+      state = request.form['state']
+      address = request.form['address']
+      phone = request.form['phone']
+      genres = request.form.getlist('genres')
+      image_link = request.form['image_link']
+      facebook_link = request.form['facebook_link']
+      website = request.form['website_link']
+      seeking_talent = True if 'seeking_talent' in request.form else False 
+      seeking_description = request.form['seeking_description']
 
-    db.session.add(venue)
-    db.session.commit()
-    
+      venue = Venue(name=name, city=city, state=state, address=address, phone=phone, genres=genres, image_link=image_link, 
+      facebook_link=facebook_link, website=website, seeking_talent=seeking_talent, seeking_description=seeking_description)
+
+      db.session.add(venue)
+
+      db.session.commit()
+    else:
+      error = True
   
-  except Exception as inst:
-    print(inst)
+  except Exception as ex:
+    print(ex)
     error = True
     db.session.rollback()
 
@@ -398,24 +408,26 @@ def create_artist_submission():
   error = False
   
   try:
-      
-    name = request.form['name']
-    city = request.form['city']
-    state = request.form['state']
-    phone = request.form['phone']
-    genres = request.form.getlist('genres')
-    image_link = request.form['image_link']
-    facebook_link = request.form['facebook_link']
-    website = request.form['website_link']
-    seeking_venue = True if 'seeking_venue' in request.form else False 
-    seeking_description = request.form['seeking_description']
+    form = ArtistForm(request.form)
+    if form.validate():
+      name = request.form['name']
+      city = request.form['city']
+      state = request.form['state']
+      phone = request.form['phone']
+      genres = request.form.getlist('genres')
+      image_link = request.form['image_link']
+      facebook_link = request.form['facebook_link']
+      website = request.form['website_link']
+      seeking_venue = True if 'seeking_venue' in request.form else False 
+      seeking_description = request.form['seeking_description']
 
-    artist = Artist(name=name, city=city, state=state, phone=phone, genres=genres, image_link=image_link, 
-    facebook_link=facebook_link, website=website, seeking_venue=seeking_venue, seeking_description=seeking_description)
+      artist = Artist(name=name, city=city, state=state, phone=phone, genres=genres, image_link=image_link, 
+      facebook_link=facebook_link, website=website, seeking_venue=seeking_venue, seeking_description=seeking_description)
 
-    db.session.add(venue)
-    db.session.commit()
-    
+      db.session.add(artist)
+      db.session.commit()
+    else:
+      error = True
   
   except Exception as inst:
     print(inst)
@@ -484,15 +496,19 @@ def create_show_submission():
   error = False
   
   try:
-      
-    artist_id = request.form['artist_id']
-    venue_id = request.form['venue_id']
-    start_time = request.form['start_time']
-    
-    show = Show(artist_id=artist_id, venue_id=venue_id, start_time=start_time)
+    form = ShowForm(request.form)
 
-    db.session.add(show)
-    db.session.commit()
+    if form.validate(): 
+      artist_id = request.form['artist_id']
+      venue_id = request.form['venue_id']
+      start_time = request.form['start_time']
+      
+      show = Show(artist_id=artist_id, venue_id=venue_id, start_time=start_time)
+
+      db.session.add(show)
+      db.session.commit()
+    else:
+      error = True
     
   except Exception as inst:
     print(inst)
