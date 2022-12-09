@@ -23,9 +23,11 @@ from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
+csrf.init_app(app)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
+
 
 
 from model import *
@@ -126,7 +128,7 @@ def create_venue_submission():
   error = False
   
   try:
-    form = VenueForm(request.form)
+    form = VenueForm(request.form, meta={"csrf": False})
     #print(form.name)
     #print(form.address)
     #v = form.validate()
@@ -408,7 +410,7 @@ def create_artist_submission():
   error = False
   
   try:
-    form = ArtistForm(request.form)
+    form = ArtistForm(request.form, meta={"csrf": False})
     if form.validate():
       name = request.form['name']
       city = request.form['city']
@@ -496,7 +498,7 @@ def create_show_submission():
   error = False
   
   try:
-    form = ShowForm(request.form)
+    form = ShowForm(request.form, meta={"csrf": False})
 
     if form.validate(): 
       artist_id = request.form['artist_id']
