@@ -1,0 +1,29 @@
+class Solution:
+    def findRedundantConnection(self, edges: List[List[int]]) -> List[int]:
+        parent = [-1] * (len(edges) + 1)
+              
+        def find(n):
+            # return n's parent
+            if parent[n] == -1:
+                return n
+            p = parent[n]
+            return find(p)
+        
+        def union(m, n):
+            #print('before ', parent)
+            if find(m) == find(n):
+                # m, n has the same parent -> in the same group -> there is a cycle
+                return True
+            pm = find(m)
+            pn = find(n)
+            
+            parent[pn] = pm
+            
+            #print('after ', parent)
+            return False
+        
+        for i, j in edges:
+            #print(i, j, '----------')
+            if union(i,j):
+                return [i, j]
+                
