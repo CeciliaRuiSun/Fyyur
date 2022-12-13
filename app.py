@@ -27,7 +27,7 @@ csrf.init_app(app)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
-
+print('ddd')
 
 
 from model import *
